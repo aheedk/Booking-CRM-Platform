@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-vite@latest:*)",
+      "Bash(npx vite build)",
+      "Bash(timeout 3 node:*)",
+      "Bash(reg query:*)",
+      "Bash(timeout 5 npx nodemon:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)",
+      "Bash(node -e:*)"
+    ]
+  }
+}

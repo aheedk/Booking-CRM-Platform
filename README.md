@@ -8,3 +8,4 @@ This repository contains the Booking CRM Platform project.
 
 ## Next steps
 - Add a remote and push: `git remote add origin <url>` then `git push -u origin main`
+22

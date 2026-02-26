@@ -437,6 +437,129 @@ a:hover {
   color: #666;
 }
 
+/* Notification Bell */
+.notification-bell {
+  position: relative;
+}
+
+.bell-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  position: relative;
+  line-height: 1;
+}
+
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 300px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.notification-header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.9rem;
+}
+
+.notification-item {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-message {
+  font-size: 0.85rem;
+  margin-bottom: 0.2rem;
+  color: #333;
+}
+
+.notification-time {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.no-notifications {
+  padding: 1rem;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+/* Analytics */
+.analytics-page h2 {
+  margin-bottom: 1.5rem;
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.chart-container {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
+  height: 300px;
+}
+
+.chart-container h3 {
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  color: #374151;
+}
+
+.chart-container--doughnut {
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-container--doughnut canvas {
+  max-width: 220px;
+  max-height: 220px;
+  margin: 0 auto;
+}
+
+.chart-empty {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.9rem;
+  padding-top: 2rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .navbar {
@@ -455,5 +578,9 @@ a:hover {
 
   .dashboard-actions {
     flex-direction: column;
+  }
+
+  .chart-grid {
+    grid-template-columns: 1fr;
   }
 }

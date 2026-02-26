@@ -1,0 +1,115 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+jobs:
+  # ── Test: runs on every push to every branch ──────────────────────────────
+  test:
+    name: Syntax & Build Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install server dependencies
+        working-directory: server
+        run: npm ci
+
+      - name: Check server JS syntax
+        working-directory: server
+        run: |
+          find src -name "*.js" | xargs node --check
+          echo "✓ Server syntax check passed"
+
+      - name: Install client dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: Build client (catches JSX/import errors)
+        working-directory: client
+        env:
+          VITE_API_URL: http://placeholder-build-check
+        run: npm run build
+
+  # ── Deploy: runs only on push to main, after test passes ──────────────────
+  deploy:
+    name: Deploy to AWS
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      # ── Frontend: build and sync to S3 ──────────────────────────────────
+      - name: Install client dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: Build client
+        working-directory: client
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+        run: npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # Upload hashed assets with long cache (filenames change when content changes)
+      - name: Sync static assets to S3
+        run: |
+          aws s3 sync client/dist/ s3://${{ secrets.S3_BUCKET_NAME }}/ \
+            --delete \
+            --exclude "index.html" \
+            --cache-control "max-age=31536000,immutable"
+
+      # Upload index.html with no-cache (always fetch fresh entry point)
+      - name: Upload index.html to S3
+        run: |
+          aws s3 cp client/dist/index.html s3://${{ secrets.S3_BUCKET_NAME }}/index.html \
+            --cache-control "no-cache,no-store,must-revalidate"
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
+
+      # ── Backend: deploy via SSH to EC2 ──────────────────────────────────
+      - name: Deploy backend to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/booking-crm-platform
+            git pull origin main
+            cd server
+            npm ci --omit=dev
+            pm2 restart booking-crm-server
+            pm2 save
+            echo "✓ Backend deployed"

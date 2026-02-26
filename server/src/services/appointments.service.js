@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 const AppError = require('../utils/AppError');
+const { emitToUser, emitToAdmins } = require('../utils/socketManager');
 
 async function createAppointment(clientId, { serviceId, startTime, notes }) {
   // Get service duration
@@ -35,7 +36,21 @@ async function createAppointment(clientId, { serviceId, startTime, notes }) {
        RETURNING *`,
       [clientId, serviceId, start.toISOString(), end.toISOString(), notes || null]
     );
-    return result.rows[0];
+    const appointment = result.rows[0];
+    const ts = new Date().toISOString();
+    emitToUser(clientId, 'notification', {
+      type: 'appointment_created',
+      message: 'Your appointment has been booked successfully.',
+      appointment,
+      timestamp: ts,
+    });
+    emitToAdmins('notification', {
+      type: 'new_booking',
+      message: `New appointment booked (ID: ${appointment.id})`,
+      appointment,
+      timestamp: ts,
+    });
+    return appointment;
   } catch (err) {
     // Database exclusion constraint violation (race condition safety net)
     if (err.code === '23P01') {
@@ -93,7 +108,21 @@ async function updateStatus(id, status) {
   if (result.rows.length === 0) {
     throw new AppError('Appointment not found', 404);
   }
-  return result.rows[0];
+  const appointment = result.rows[0];
+  const ts = new Date().toISOString();
+  emitToUser(appointment.client_id, 'notification', {
+    type: 'appointment_updated',
+    message: `Your appointment status has been updated to: ${status}.`,
+    appointment,
+    timestamp: ts,
+  });
+  emitToAdmins('notification', {
+    type: 'appointment_updated',
+    message: `Appointment ${appointment.id} status changed to ${status}`,
+    appointment,
+    timestamp: ts,
+  });
+  return appointment;
 }
 
 async function cancelAppointment(id, clientId) {
@@ -106,7 +135,21 @@ async function cancelAppointment(id, clientId) {
   if (result.rows.length === 0) {
     throw new AppError('Appointment not found or cannot be cancelled', 404);
   }
-  return result.rows[0];
+  const appointment = result.rows[0];
+  const ts = new Date().toISOString();
+  emitToUser(appointment.client_id, 'notification', {
+    type: 'appointment_cancelled',
+    message: 'Your appointment has been cancelled.',
+    appointment,
+    timestamp: ts,
+  });
+  emitToAdmins('notification', {
+    type: 'appointment_cancelled',
+    message: `Appointment ${appointment.id} was cancelled by client`,
+    appointment,
+    timestamp: ts,
+  });
+  return appointment;
 }
 
 async function getAvailability(serviceId, date) {

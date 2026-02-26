@@ -12,6 +12,7 @@ import MyAppointmentsPage from './pages/MyAppointmentsPage';
 import AppointmentsPage from './pages/AppointmentsPage';
 import ClientsPage from './pages/ClientsPage';
 import ClientDetailPage from './pages/ClientDetailPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 
 export default function App() {
   return (
@@ -43,6 +44,7 @@ export default function App() {
               <Route path="/admin/appointments" element={<AppointmentsPage />} />
               <Route path="/admin/clients" element={<ClientsPage />} />
               <Route path="/admin/clients/:id" element={<ClientDetailPage />} />
+              <Route path="/admin/analytics" element={<AnalyticsPage />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

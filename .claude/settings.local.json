@@ -8,7 +8,8 @@
       "Bash(timeout 5 npx nodemon:*)",
       "Bash(netstat:*)",
       "Bash(taskkill:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(npm run build:*)"
     ]
   }
 }
